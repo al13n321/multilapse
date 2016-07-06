@@ -56,6 +56,9 @@ public class TimeBulletMaker {
             Log.d(TAG, "get photo with size = " + bitmapData.length);
             BitmapFactory.Options opts = getScaleOptions(bitmapData);
             Log.d(TAG, "scale = " + opts.inSampleSize);
+            if (bitmaps_.size() % 2 == 0) {
+                //opts.inSampleSize = 2;
+            }
             Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length, opts);
             bitmaps_.add(bitmap);
         } catch (Exception error) {

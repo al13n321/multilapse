@@ -26,15 +26,9 @@
         android:text="Snap"
         android:id="@+id/snap_button"
         android:onClick="onTakeSnapshot"
-        android:layout_alignTop="@+id/preview_switch"
-        android:layout_alignRight="@+id/preview_switch"
-        android:layout_alignEnd="@+id/preview_switch"
-        android:layout_marginRight="51dp"
-        android:layout_marginEnd="51dp"
-        android:layout_toRightOf="@+id/host_switch"
-        android:layout_toEndOf="@+id/host_switch"
-        android:layout_marginLeft="159dp"
-        android:layout_marginStart="159dp" />
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/hypersnap_button"
+        android:layout_toEndOf="@+id/hypersnap_button" />
 
     <ToggleButton
         android:layout_width="wrap_content"
@@ -77,6 +71,9 @@
         android:id="@+id/hypersnap_button"
         android:layout_alignTop="@+id/snap_button"
         android:layout_centerHorizontal="true"
-        android:onClick="onHypersnap" />
+        android:onClick="onHypersnap"
+        android:layout_alignParentBottom="true"
+         />
+
 
 </RelativeLayout>
