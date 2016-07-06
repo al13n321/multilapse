@@ -22,6 +22,8 @@ import java.util.List;
  * This class assumes the parent layout is RelativeLayout.LayoutParams.
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+    private static final String TAG = "CameraHelper";
+
     private static final String LOG_TAG = "CameraPreviewSample";
     private static final String CAMERA_PARAM_ORIENTATION = "orientation";
     private static final String CAMERA_PARAM_LANDSCAPE = "landscape";
@@ -33,6 +35,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     protected List<Camera.Size> mPictureSizeList;
     protected Camera.Size mPreviewSize;
     protected Camera.Size mPictureSize;
+    private int SIZE = 400;
+
     /**
      * State flag: true when surface's layout size is set and surfaceChanged()
      * process has not been completed.
@@ -74,6 +78,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         Camera.Parameters cameraParams = mCamera.getParameters();
         mPreviewSizeList = cameraParams.getSupportedPreviewSizes();
         mPictureSizeList = cameraParams.getSupportedPictureSizes();
+        for (Camera.Size size : mPictureSizeList) {
+            Log.d(TAG, "size (" + size.width + ", " + size.height + ")");
+        }
     }
 
     public Camera getCamera() {
@@ -202,12 +209,22 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     protected Camera.Size determinePictureSize(Camera.Size previewSize) {
         Camera.Size retSize = null;
+
         for (Camera.Size size : mPictureSizeList) {
+            if (size.width > SIZE && size.height > SIZE) {
+                Log.d(TAG, "choose size: (" + size.width + ", " + size.height + ")");
+                if (retSize == null || size.width < retSize.width) {
+                    retSize = size;
+                }
+            }
+            /*
             if (size.equals(previewSize)) {
                 return size;
             }
+            */
         }
-
+        return retSize;
+/*
         if (DEBUGGING) {
             Log.v(LOG_TAG, "Same picture size not found.");
         }
@@ -226,6 +243,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }
 
         return retSize;
+        */
     }
 
     protected boolean adjustSurfaceLayoutSize(Camera.Size previewSize, boolean portrait,
@@ -326,6 +344,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setDisplayOrientation(angle);
         }
 
+        Log.d(TAG, "Set picture size to (" + mPictureSize.width + ", " + mPictureSize.height + ")");
         cameraParams.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         cameraParams.setPictureSize(mPictureSize.width, mPictureSize.height);
         if (DEBUGGING) {

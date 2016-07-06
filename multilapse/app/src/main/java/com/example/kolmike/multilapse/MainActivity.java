@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private CameraPreview mPreview;
     private RelativeLayout mLayout;
 
+    private TimeBulletMaker builder_;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,8 +58,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTakeSnapshot(View view) {
         Log.d(TAG, "takePicture()");
-        //(ToggleButton) findViewById(R.id.preview_switch).set
-        camera.takePicture(new CameraHelper.SaveToFileCallback());
+
+        if (builder_ != null) {
+            CameraHelper.PhotoCallback callback = new CameraHelper.PhotoCallback() {
+                @Override
+                public void onPictureTaken(Context context, byte[] data) {
+                    Log.v(TAG, "Photo taken, adding to gif builder...");
+                    builder_.add(data);
+                }
+            };
+            camera.takePicture(callback);
+        } else {
+            camera.takePicture(new CameraHelper.SaveToFileCallback());
+        }
         Log.d(TAG, "/takePicture()");
     }
 
@@ -92,6 +105,23 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d(TAG, "Switched to OFF");
             camera.turnOffPreview();
+        }
+
+    }
+
+    public void onGifButtonClick(View view) {
+        ToggleButton tb = (ToggleButton) findViewById(R.id.gif_button);
+        if (tb.isChecked()) {
+            Log.d(TAG, "Start building gif");
+            builder_ = new TimeBulletMaker();
+        } else {
+            Log.d(TAG, "Stop building gif");
+            String fname = "ml_" + Utility.getDate() + ".gif";
+            builder_.saveToFile(fname);
+            Log.d(TAG, "Save gif to file " + fname);
+            Toast.makeText(getApplicationContext(), "New gif saved:" + fname,
+                    Toast.LENGTH_LONG).show();
+            builder_ = null;
         }
 
     }

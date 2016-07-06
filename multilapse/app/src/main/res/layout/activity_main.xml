@@ -26,29 +26,34 @@
         android:text="Snap"
         android:id="@+id/snap_button"
         android:onClick="onTakeSnapshot"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="440dp" />
+        android:layout_alignTop="@+id/preview_switch"
+        android:layout_toLeftOf="@+id/preview_switch"
+        android:layout_toStartOf="@+id/preview_switch" />
 
     <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New ToggleButton"
         android:id="@+id/preview_switch"
-        android:layout_alignBottom="@+id/snap_button"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/snap_button"
-        android:layout_toRightOf="@+id/snap_button"
-        android:layout_toEndOf="@+id/snap_button"
-        android:layout_marginLeft="69dp"
-        android:layout_marginStart="69dp"
         android:enabled="true"
         android:textOn="On"
         android:textOff="Off"
         android:onClick="onSwitchPreviewClick"
-        android:checked="true" />
+        android:checked="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New ToggleButton"
+        android:id="@+id/gif_button"
+        android:layout_alignTop="@+id/snap_button"
+        android:layout_toLeftOf="@+id/snap_button"
+        android:layout_toStartOf="@+id/snap_button"
+        android:textOff="Start gif"
+        android:textOn="Stop gif"
+        android:onClick="onGifButtonClick" />
 
 </RelativeLayout>

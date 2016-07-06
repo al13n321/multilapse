@@ -88,24 +88,14 @@ public class CameraHelper {
         @Override
         public void onPictureTaken(Context context, byte[] data) {
             Log.d(TAG, "onPictureTaken()");
-            File pictureFileDir = getDir();
 
-            if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-                Toast.makeText(context, "Can't create directory to save image.",
-                        Toast.LENGTH_LONG).show();
-                return;
-
-            }
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
-            String date = dateFormat.format(new Date());
-            String photoFile = "Multilapse_" + date + ".jpg";
-
-            String filename = pictureFileDir.getPath() + File.separator + photoFile;
-
-            File pictureFile = new File(filename);
-            Log.d(TAG, "Photo filename = " + filename);
             try {
+                String photoFile = "Multilapse_" + Utility.getDate() + ".jpg";
+                String filename = Utility.getFilepath(photoFile);
+
+                File pictureFile = new File(filename);
+                Log.d(TAG, "Photo filename = " + filename);
+
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
@@ -117,11 +107,7 @@ public class CameraHelper {
             }
         }
 
-        private File getDir() {
-            File sdDir = Environment
-                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            return new File(sdDir, "Multilapse");
-        }
+
 
     }
 
