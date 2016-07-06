@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.widget.FrameLayout;
 import android.widget.ToggleButton;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MyActivity";
@@ -76,13 +78,26 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "/takePicture()");
     }
 
+    class HypersnapCallback implements Host.HypersnapCallback {
+        public void onPicturesTaken(ArrayList<byte[]> data) {
+            TimeBulletMaker builder = new TimeBulletMaker();
+            for (byte[] pic : data) {
+                builder.add(pic);
+            }
+            Log.d(TAG, "Building a gif from " + data.size() + " frames");
+            String fname = "ml_" + Utility.getDate() + ".gif";
+            builder.saveToFile(fname);
+            Log.d(TAG, "Save gif to file " + fname);
+        }
+    }
+
     public void onHypersnap(View view) {
         if (host == null) {
             Button b = (Button) findViewById(R.id.hypersnap_button);
             b.setEnabled(false);
             return;
         }
-        host.hypersnap(new Host.TestHypersnapCallback());
+        host.hypersnap(new HypersnapCallback());
     }
 
     void updateHost() {
