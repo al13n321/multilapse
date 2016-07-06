@@ -172,7 +172,9 @@ public class Host {
         void onPicturesTaken(ArrayList<byte[]> data);
     }
 
-    class TestHypersnapCallback implements HypersnapCallback {
+    static class TestHypersnapCallback implements HypersnapCallback {
+        public TestHypersnapCallback() {}
+
         public void onPicturesTaken(ArrayList<byte[]> data) {
             Log.d(TAG, "Hypersnapped " + data.size() + " pictures!" +
                     (data.size() > 1 ? " Wooo!" : ""));
@@ -216,6 +218,8 @@ public class Host {
             public HypersnapThread(Collection<NetThread> conns, HypersnapCallback cb_) {
                 count = conns.size();
                 cb = cb_;
+                sem = new Semaphore(0);
+                pics = new ArrayList<>();
                 for (NetThread conn : conns) {
                     conn.snap(this);
                 }

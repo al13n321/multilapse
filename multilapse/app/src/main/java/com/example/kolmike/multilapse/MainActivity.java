@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.content.pm.PackageManager;
@@ -76,11 +77,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onHypersnap(View view) {
-        Log.d(TAG, "Hypersnap button says hi");
+        if (host == null) {
+            Button b = (Button) findViewById(R.id.hypersnap_button);
+            b.setEnabled(false);
+            return;
+        }
+        host.hypersnap(new Host.TestHypersnapCallback());
     }
 
     void updateHost() {
         Switch s = (Switch) findViewById(R.id.host_switch);
+        Button b = (Button) findViewById(R.id.hypersnap_button);
+        b.setEnabled(s.isChecked());
         if (s.isChecked() == (host != null)) {
             return;
         }

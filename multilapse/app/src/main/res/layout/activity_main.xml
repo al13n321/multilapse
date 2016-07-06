@@ -77,6 +77,6 @@
         android:id="@+id/hypersnap_button"
         android:layout_alignTop="@+id/snap_button"
         android:layout_centerHorizontal="true"
-        android:onClick="onHyperlapse" />
+        android:onClick="onHypersnap" />
 
 </RelativeLayout>

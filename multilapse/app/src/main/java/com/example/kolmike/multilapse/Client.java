@@ -176,7 +176,6 @@ public class Client {
                         Log.d(TAG, "Found uninteresting service " + service);
                     } else if (service.getServiceName().startsWith("multilapse @")) {
                         Log.d(TAG, "Found multilapse service: " + service.getServiceName());
-                    } else if (service.getServiceName().contains("NsdChat")){
                         NsdManager.ResolveListener resolveListener =
                                 new NsdManager.ResolveListener() {
                             @Override
