@@ -25,7 +25,30 @@
         android:layout_height="wrap_content"
         android:text="Snap"
         android:id="@+id/snap_button"
-        android:layout_above="@+id/host_switch"
+        android:onClick="onTakeSnapshot"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="71dp" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="440dp" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New ToggleButton"
+        android:id="@+id/preview_switch"
+        android:layout_alignBottom="@+id/snap_button"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/snap_button"
+        android:layout_toRightOf="@+id/snap_button"
+        android:layout_toEndOf="@+id/snap_button"
+        android:layout_marginLeft="69dp"
+        android:layout_marginStart="69dp"
+        android:enabled="true"
+        android:textOn="On"
+        android:textOff="Off"
+        android:onClick="onSwitchPreviewClick"
+        android:checked="false" />
+
 </RelativeLayout>
