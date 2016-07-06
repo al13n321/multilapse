@@ -48,8 +48,6 @@ import android.view.SurfaceHolder;
 
 public class CameraHelper {
     private static final String TAG = "CameraHelper";
-    private int CAMERA_ID = 0;
-    private Camera camera_;
     private final Context context_;
     private final Activity activity_;
     private CameraPreview preview_;
@@ -58,17 +56,20 @@ public class CameraHelper {
 
     private final class CameraErrorCallback implements android.hardware.Camera.ErrorCallback {
         public void onError(int error, android.hardware.Camera camera) {
-            //Assert.fail(String.format("Camera error, code: %d", error));
-            Log.d("TEST", "Error code: " + error);
+            Log.d(TAG, "Error code: " + error);
         }
     }
 
     private final class JpegCallback implements PictureCallback {
 
         private final Context context;
+        private final CameraHelper cameraHelper;
+        private final boolean stopPreview;
 
-        public JpegCallback(Context context) {
+        public JpegCallback(CameraHelper cameraHelper, boolean stopPreview, Context context) {
             this.context = context;
+            this.cameraHelper = cameraHelper;
+            this.stopPreview = stopPreview;
         }
 
         @Override
@@ -91,7 +92,7 @@ public class CameraHelper {
             String filename = pictureFileDir.getPath() + File.separator + photoFile;
 
             File pictureFile = new File(filename);
-            Log.d("TEST", "Photo filename = " + filename);
+            Log.d(TAG, "Photo filename = " + filename);
             try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
@@ -102,12 +103,19 @@ public class CameraHelper {
                 Toast.makeText(context, "Image could not be saved.",
                         Toast.LENGTH_LONG).show();
             }
+
+
+            if (stopPreview) {
+                cameraHelper.turnOffPreview();
+            } else {
+                camera.startPreview();
+            }
         }
 
         private File getDir() {
             File sdDir = Environment
                     .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            return new File(sdDir, "CameraAPIDemo");
+            return new File(sdDir, "Multilapse");
         }
     }
 
@@ -137,6 +145,15 @@ public class CameraHelper {
     }
 
     public void takePicture() {
+        boolean stopPreview = false;
+        if (preview_ == null) {
+            showPreview();
+            stopPreview = true;
+        }
+        Camera camera = preview_.getCamera();
+        camera.startPreview();
+        camera.lock();
+
         Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback() {
             @Override
             public void onShutter() {
@@ -152,7 +169,7 @@ public class CameraHelper {
         };
 
 
-        camera_.setPreviewCallback(null);
-        camera_.takePicture(shutterCallback, rawCallback, new JpegCallback(context_));
+        camera.setPreviewCallback(null);
+        camera.takePicture(shutterCallback, rawCallback, new JpegCallback(this, stopPreview, context_));
     }
 }

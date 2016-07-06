@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTakeSnapshot(View view) {
         Log.d(TAG, "takePicture()");
-        //camera.takePicture();
+        //(ToggleButton) findViewById(R.id.preview_switch).set
+        camera.takePicture();
         Log.d(TAG, "/takePicture()");
     }
 
