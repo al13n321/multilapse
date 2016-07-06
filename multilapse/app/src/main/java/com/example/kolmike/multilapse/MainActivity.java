@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onHypersnap(View view) {
-
+        Log.d(TAG, "Hypersnap button says hi");
     }
 
     void updateHost() {
