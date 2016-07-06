@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class TimeBulletMaker {
     private static final String TAG = "TimeBulletMaker";
-    public final int DELAY_MS = 100;
+    public final int DELAY_MS = 200;
     public final boolean ADD_BACKWARD = true;
     private final int REQUIRED_SIZE = 640;
     private AnimatedGifEncoder gifEncoder;
