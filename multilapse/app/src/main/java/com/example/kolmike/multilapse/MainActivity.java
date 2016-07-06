@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         camera = new CameraHelper(this);
-        update();
+        client = new Client(this, camera);
+        updateHost();
     }
 
     @Override
@@ -74,26 +75,16 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "/takePicture()");
     }
 
-    void update() {
+    void updateHost() {
         Switch s = (Switch) findViewById(R.id.host_switch);
+        if (s.isChecked() == (host != null)) {
+            return;
+        }
         if (s.isChecked()) {
-            if (host != null) {
-                return;
-            }
-            if (client != null) {
-                client.stop();
-                client = null;
-            }
             host = new Host(this);
         } else {
-            if (client != null) {
-                return;
-            }
-            if (host != null) {
-                host.stop();
-                host = null;
-            }
-            client = new Client(this);
+            host.stop();
+            host = null;
         }
     }
 
@@ -127,6 +118,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onHostSwitched(View view) {
-        update();
+        updateHost();
     }
 }

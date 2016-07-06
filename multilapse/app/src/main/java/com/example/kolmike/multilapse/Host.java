@@ -6,10 +6,19 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 public class Host {
 
@@ -57,16 +66,124 @@ public class Host {
         }
     }
 
+    interface SnapCallback {
+        void onPictureTaken(byte[] data);
+    }
+
+    class NetThread extends Thread {
+        ListenerThread listener;
+        Socket socket;
+        BlockingQueue<SnapCallback> queue;
+
+        public NetThread(ListenerThread listener_, Socket socket_) {
+            listener = listener_;
+            socket = socket_;
+            queue = new LinkedBlockingQueue<>();
+        }
+
+        class ProtocolException extends Exception {}
+
+        @Override
+        public void run() {
+            DataInputStream in;
+            DataOutputStream out;
+            Socket sock;
+            synchronized (this) {
+                sock = socket;
+            }
+            if (sock == null) {
+                return;
+            }
+            try {
+                in = new DataInputStream(sock.getInputStream());
+                out = new DataOutputStream(sock.getOutputStream());
+            } catch (IOException e) {
+                Log.d(TAG, "Failed to create data streams: " + e);
+                destroySelf();
+                return;
+            }
+            try {
+                while (!Thread.interrupted()) {
+                    SnapCallback cb = queue.take();
+                    out.writeChar('s');
+                    out.writeInt(0);
+                    out.flush();
+                    char type = in.readChar();
+                    if (type != 'p') {
+                        throw new ProtocolException();
+                    }
+                    int sz = in.readInt();
+                    byte[] data = new byte[sz];
+                    in.readFully(data);
+                    cb.onPictureTaken(data);
+                }
+            }
+            catch (InterruptedException e) {}
+            catch (IOException e) {
+                Log.d(TAG, "IO error: " + e);
+            }
+            catch (ProtocolException e) {
+                Log.d(TAG, "Protocol error: " + e);
+            }
+            destroySelf();
+        }
+
+        public void snap(SnapCallback cb) {
+            queue.offer(cb);
+        }
+
+        void destroySelf() {
+            interrupt();
+            Socket sock;
+            synchronized (this) {
+                if (socket == null) {
+                    return;
+                }
+                sock = socket;
+                socket = null;
+                try {
+                    sock.close();
+                } catch (IOException e) {
+                    Log.d(TAG, "Failed to close socket: " + e);
+                }
+            }
+            synchronized (listener) {
+                listener.connections.remove(sock);
+            }
+        }
+
+        public void interruptIt() {
+            interrupt();
+            synchronized (this) {
+                if (socket == null) {
+                    return;
+                }
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    Log.d(TAG, "Failed to close socket: " + e);
+                }
+                socket = null;
+            }
+        }
+    }
+
+    interface HypersnapCallback {
+        void onPicturesTaken(ArrayList<byte[]> data);
+    }
+
     class ListenerThread extends Thread {
         Host host;
         ServerSocket serverSocket;
         NsdRegistration nsd;
+        public Map<Socket, NetThread> connections;
 
         public ListenerThread(Host host_) {
             host = host_;
+            connections = new HashMap<Socket, NetThread>();
         }
 
-        public void interruptListener() {
+        public void interruptIt() {
             synchronized (this) {
                 if (serverSocket != null) {
                     try {
@@ -77,7 +194,52 @@ public class Host {
                     serverSocket = null;
                 }
                 interrupt();
+                for (Map.Entry<Socket, NetThread> entry : connections.entrySet()) {
+                    entry.getValue().interruptIt();
+                }
             }
+        }
+
+        class HypersnapThread extends Thread implements SnapCallback {
+            int count;
+            HypersnapCallback cb;
+            Semaphore sem;
+            ArrayList<byte[]> pics;
+
+            public HypersnapThread(Collection<NetThread> conns, HypersnapCallback cb_) {
+                count = conns.size();
+                cb = cb_;
+                for (NetThread conn : conns) {
+                    conn.snap(this);
+                }
+            }
+
+            public void onPictureTaken(byte[] data) {
+                synchronized (this) {
+                    pics.add(data);
+                }
+                sem.release();
+            }
+
+            @Override
+            public void run() {
+                try {
+                    for (int i = 0; i < count; ++i) {
+                        sem.acquire();
+                    }
+                    cb.onPicturesTaken(pics);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "HypersnapThread interrupted: " + e);
+                }
+            }
+        }
+
+        public void hypersnap(HypersnapCallback cb) {
+            Collection<NetThread> conns;
+            synchronized (this) {
+                conns = connections.values();
+            }
+            new HypersnapThread(conns, cb).start();
         }
 
         public void run() {
@@ -111,12 +273,11 @@ public class Host {
                     Log.d(TAG, "Listening");
                     Socket socket = sock.accept();
                     Log.d(TAG, "Got a connection");
-                    DataOutputStream out =
-                        new DataOutputStream(socket.getOutputStream());
-                    out.writeUTF("Thank you for connecting to "
-                        + socket.getLocalSocketAddress() + "\nGoodbye!");
-                    socket.close();
-                    Log.d(TAG, "Closed the connection");
+                    synchronized (this) {
+                        NetThread t = new NetThread(this, socket);
+                        t.start();
+                        connections.put(socket, t);
+                    }
                 } catch (IOException e) {
                     Log.d(TAG, "Accept failed: " + e);
                 }
@@ -150,8 +311,12 @@ public class Host {
         listener.start();
     }
 
+    public void hypersnap(HypersnapCallback cb) {
+        listener.hypersnap(cb);
+    }
+
     public void stop() {
-        listener.interruptListener();
+        listener.interruptIt();
         listener = null;
         Log.d(TAG, "Stopped Host");
     }

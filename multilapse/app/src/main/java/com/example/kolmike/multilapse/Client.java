@@ -10,6 +10,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 public class Client {
     private static final String TAG = "Client";
@@ -40,6 +43,21 @@ public class Client {
             }
         }
 
+        class BlockingPhotoCallback implements CameraHelper.PhotoCallback {
+            Semaphore sem;
+            byte[] data;
+
+            BlockingPhotoCallback(Semaphore sem_) {
+                sem = sem_;
+            }
+
+            @Override
+            public void onPictureTaken(Context context, byte[] data_) {
+                data = data_;
+                sem.release();
+            }
+        }
+
         public void run() {
             DataInputStream in = null;
             DataOutputStream out = null;
@@ -52,6 +70,8 @@ public class Client {
                 if (sock == null) {
                     try {
                         sock = new Socket(host, port);
+                        in = new DataInputStream(sock.getInputStream());
+                        out = new DataOutputStream(sock.getOutputStream());
                     } catch (IOException e) {
                         Log.d(TAG, "Failed to connect to " + host + ":" + port + ", error: " + e);
                         try {
@@ -61,8 +81,6 @@ public class Client {
                             break;
                         }
                     }
-                    in = new DataInputStream(server.getInputStream());
-                    out = new DataOutputStream(server.getOutputStream());
                     synchronized (this) {
                         socket = sock;
                     }
@@ -73,12 +91,25 @@ public class Client {
                 try {
                     char type = in.readChar();
                     int sz = in.readInt();
-                    if (type == 's') {
-                        
-                    } else {
-                        Log.d(TAG, "Unexpected message type: " + type + ", size: " + sz);
-                        disconnect = true;
-                    }
+                    do {
+                        if (type == 's') {
+                            Semaphore sem = new Semaphore(0);
+                            BlockingPhotoCallback cb = new BlockingPhotoCallback(sem);
+                            camera.takePicture(cb);
+                            Log.d(TAG, "Taking picture");
+                            sem.acquire();
+                            byte[] data = cb.data;
+                            Log.d(TAG, "Took picture, " + data.length + " bytes");
+
+                            out.writeChar('p');
+                            out.writeInt(data.length);
+                            out.write(data);
+                            out.flush();
+                        } else {
+                            Log.d(TAG, "Unexpected message type: " + type + ", size: " + sz);
+                            disconnect = true;
+                        }
+                    } while (false);
                     if (!disconnect) {
                         in.skipBytes(sz);
                     }
@@ -86,11 +117,14 @@ public class Client {
                     Log.d(TAG, "Failed socket IO: " + e);
                     disconnect = true;
                 }
+                catch (InterruptedException ei) {
+                    break;
+                }
 
                 if (disconnect) {
                     try {
                         sock.close();
-                    } catch (IOException e1) {
+                    } catch (IOException e) {
                         Log.d(TAG, "Failed close socket: " + e);
                     }
                     synchronized (this) {
@@ -122,10 +156,12 @@ public class Client {
         Client client;
         NsdManager mgr;
         NsdManager.DiscoveryListener discoveryListener;
+        Map<String, NetThread> connections;
 
         public NsdDiscoverer(Client client_) {
             client = client_;
             mgr = (NsdManager) client.context.getSystemService(Context.NSD_SERVICE);
+            connections = new HashMap<>();
 
             discoveryListener = new NsdManager.DiscoveryListener() {
                 @Override
@@ -146,6 +182,15 @@ public class Client {
                             @Override
                             public void onServiceResolved (NsdServiceInfo serviceInfo) {
                                 Log.d(TAG, "Resolved service " + serviceInfo);
+                                NetThread t = new NetThread(
+                                        client, serviceInfo.getHost(), serviceInfo.getPort());
+                                t.start();
+                                synchronized (this) {
+                                    if (connections == null) {
+                                        return;
+                                    }
+                                    connections.put(serviceInfo.getServiceName(), t);
+                                }
                             }
 
                             @Override
@@ -162,6 +207,18 @@ public class Client {
                 @Override
                 public void onServiceLost(NsdServiceInfo service) {
                     Log.d(TAG, "Lost service " + service);
+                    NetThread c;
+                    synchronized (this) {
+                        if (connections == null) {
+                            return;
+                        }
+                        c = connections.get(service.getServiceName());
+                        if (c == null) {
+                            return;
+                        }
+                        connections.remove(c);
+                    }
+                    c.interruptIt();
                 }
 
                 @Override
@@ -186,16 +243,25 @@ public class Client {
 
         public void stop() {
             mgr.stopServiceDiscovery(discoveryListener);
+            synchronized (this) {
+                for (Map.Entry<String, NetThread> c : connections.entrySet()) {
+                    c.getValue().interruptIt();
+                }
+                connections.clear();
+                connections = null;
+            }
         }
     }
 
     Context context;
+    CameraHelper camera;
     NsdDiscoverer discoverer;
 
-    public Client(Context context_) {
+    public Client(Context context_, CameraHelper camera_) {
         Log.d(TAG, "Starting Client");
 
         context = context_;
+        camera = camera_;
         discoverer = new NsdDiscoverer(this);
     }
 
