@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -67,15 +69,17 @@ public class Host {
     }
 
     interface SnapCallback {
-        void onPictureTaken(byte[] data);
+        void onPictureTaken(long connectTime, byte[] data);
     }
 
     class NetThread extends Thread {
         ListenerThread listener;
         Socket socket;
         BlockingQueue<SnapCallback> queue;
+        long connectTime;
 
         public NetThread(ListenerThread listener_, Socket socket_) {
+            connectTime = System.currentTimeMillis();
             listener = listener_;
             socket = socket_;
             queue = new LinkedBlockingQueue<>();
@@ -115,7 +119,7 @@ public class Host {
                     int sz = in.readInt();
                     byte[] data = new byte[sz];
                     in.readFully(data);
-                    cb.onPictureTaken(data);
+                    cb.onPictureTaken(connectTime, data);
                 }
             }
             catch (InterruptedException e) {}
@@ -209,11 +213,31 @@ public class Host {
             }
         }
 
+        class Frame implements Comparable<Frame> {
+            public long connectTime;
+            public byte[] data;
+
+            public Frame(long connectTime_, byte[] data_) {
+                connectTime = connectTime_;
+                data = data_;
+            }
+
+            public int compareTo(Frame f) {
+                if (connectTime < f.connectTime) {
+                    return -1;
+                } else if (connectTime > f.connectTime) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+
         class HypersnapThread extends Thread implements SnapCallback {
             int count;
             HypersnapCallback cb;
             Semaphore sem;
-            ArrayList<byte[]> pics;
+            ArrayList<Frame> pics;
 
             public HypersnapThread(Collection<NetThread> conns, HypersnapCallback cb_) {
                 count = conns.size();
@@ -225,9 +249,9 @@ public class Host {
                 }
             }
 
-            public void onPictureTaken(byte[] data) {
+            public void onPictureTaken(long connectTime, byte[] data) {
                 synchronized (this) {
-                    pics.add(data);
+                    pics.add(new Frame(connectTime, data));
                 }
                 sem.release();
             }
@@ -238,7 +262,12 @@ public class Host {
                     for (int i = 0; i < count; ++i) {
                         sem.acquire();
                     }
-                    cb.onPicturesTaken(pics);
+                    Collections.sort(pics);
+                    ArrayList<byte[]> ims = new ArrayList<>();
+                    for (Frame f : pics) {
+                        ims.add(f.data);
+                    }
+                    cb.onPicturesTaken(ims);
                 } catch (InterruptedException e) {
                     Log.e(TAG, "HypersnapThread interrupted: " + e);
                 }
