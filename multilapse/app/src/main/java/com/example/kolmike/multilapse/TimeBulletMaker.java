@@ -1,34 +1,51 @@
 package com.example.kolmike.multilapse;
 
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 public class TimeBulletMaker {
     private static final String TAG = "TimeBulletMaker";
-    private AnimatedGifEncoder gifEncoder;
     public final int DELAY_MS = 100;
     public final boolean ADD_BACKWARD = true;
+    private final int REQUIRED_SIZE = 640;
+    private AnimatedGifEncoder gifEncoder;
     private ArrayList<Bitmap> bitmaps_;
     private byte[] gifData_;
-    AnimatedGifEncoder encoder_;
+    private AnimatedGifEncoder encoder_;
 
 
     TimeBulletMaker() {
         bitmaps_ = new ArrayList<Bitmap>();
         encoder_ = new AnimatedGifEncoder();
         encoder_.setDelay(DELAY_MS);
+    }
+
+
+    BitmapFactory.Options getScaleOptions(byte[] data) {
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+
+        BitmapFactory.decodeByteArray(data, 0, data.length, o);
+
+        int width_tmp = o.outWidth, height_tmp = o.outHeight;
+        int scale = 1;
+        while (true) {
+            if (width_tmp / 2 < REQUIRED_SIZE || height_tmp / 2 < REQUIRED_SIZE) {
+                break;
+            }
+            width_tmp /= 2;
+            height_tmp /= 2;
+            scale *= 2;
+        }
+
+        BitmapFactory.Options op = new BitmapFactory.Options();
+        op.inSampleSize = scale;
+        return op;
     }
 
     public void add(Bitmap bitmap) {
@@ -38,7 +55,9 @@ public class TimeBulletMaker {
     public void add(byte[] bitmapData) {
         try {
             Log.d(TAG, "get photo with size = " + bitmapData.length);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length);
+            BitmapFactory.Options opts = getScaleOptions(bitmapData);
+            Log.d(TAG, "scale = " + opts.inSampleSize);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length, opts);
             bitmaps_.add(bitmap);
         } catch (Exception error) {
             Log.e(TAG, "Error decoding bitmap: " + error);
