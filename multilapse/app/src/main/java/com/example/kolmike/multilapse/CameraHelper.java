@@ -54,31 +54,24 @@ public class CameraHelper {
 
     CameraErrorCallback errorCallback_ = new CameraErrorCallback();
 
+    public interface PhotoCallback {
+        public abstract void onPictureTaken(Context context, byte[] data);
+    }
+
+
     private final class CameraErrorCallback implements android.hardware.Camera.ErrorCallback {
         public void onError(int error, android.hardware.Camera camera) {
             Log.d(TAG, "Error code: " + error);
         }
     }
 
-    private final class JpegCallback implements PictureCallback {
-
-        private final Context context;
-        private final CameraHelper cameraHelper;
-        private final boolean stopPreview;
-
-        public JpegCallback(CameraHelper cameraHelper, boolean stopPreview, Context context) {
-            this.context = context;
-            this.cameraHelper = cameraHelper;
-            this.stopPreview = stopPreview;
-        }
-
+    public static final class SaveToFileCallback implements PhotoCallback {
         @Override
-        public void onPictureTaken(byte[] data, Camera camera) {
+        public void onPictureTaken(Context context, byte[] data) {
             Log.d(TAG, "onPictureTaken()");
             File pictureFileDir = getDir();
 
             if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-
                 Toast.makeText(context, "Can't create directory to save image.",
                         Toast.LENGTH_LONG).show();
                 return;
@@ -103,19 +96,38 @@ public class CameraHelper {
                 Toast.makeText(context, "Image could not be saved.",
                         Toast.LENGTH_LONG).show();
             }
-
-
-            if (stopPreview) {
-                cameraHelper.turnOffPreview();
-            } else {
-                camera.startPreview();
-            }
         }
 
         private File getDir() {
             File sdDir = Environment
                     .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
             return new File(sdDir, "Multilapse");
+        }
+
+    };
+
+    private final class JpegCallback implements PictureCallback {
+        private final Context context;
+        private final CameraHelper cameraHelper;
+        private final boolean stopPreview;
+        private final PhotoCallback callback;
+
+        public JpegCallback(CameraHelper cameraHelper, boolean stopPreview, Context context, PhotoCallback callback) {
+            this.context = context;
+            this.cameraHelper = cameraHelper;
+            this.stopPreview = stopPreview;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            callback.onPictureTaken(context, data);
+
+            if (stopPreview) {
+                cameraHelper.turnOffPreview();
+            } else {
+                camera.startPreview();
+            }
         }
     }
 
@@ -144,7 +156,7 @@ public class CameraHelper {
         }
     }
 
-    public void takePicture() {
+    public void takePicture(PhotoCallback callback) {
         boolean stopPreview = false;
         if (preview_ == null) {
             showPreview();
@@ -169,7 +181,7 @@ public class CameraHelper {
         };
 
 
-        camera.setPreviewCallback(null);
-        camera.takePicture(shutterCallback, rawCallback, new JpegCallback(this, stopPreview, context_));
+        //camera.setPreviewCallback(null);
+        camera.takePicture(shutterCallback, rawCallback, new JpegCallback(this, stopPreview, context_, callback));
     }
 }
