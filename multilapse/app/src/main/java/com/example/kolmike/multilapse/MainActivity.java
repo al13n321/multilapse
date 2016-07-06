@@ -1,5 +1,6 @@
 package com.example.kolmike.multilapse;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
                 client.stop();
                 client = null;
             }
-            host = new Host();
+            host = new Host(this);
         } else {
             if (client != null) {
                 return;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
                 host.stop();
                 host = null;
             }
-            client = new Client();
+            client = new Client(this);
         }
     }
 

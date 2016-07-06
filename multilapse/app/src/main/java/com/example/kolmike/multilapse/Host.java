@@ -46,7 +46,7 @@ public class Host {
 
             NsdServiceInfo serviceInfo  = new NsdServiceInfo();
             serviceInfo.setServiceName("multilapse @" + System.currentTimeMillis());
-            serviceInfo.setServiceType("_http._tcp.");
+            serviceInfo.setServiceType("_multilapse._tcp.");
             serviceInfo.setPort(port);
             mgr = (NsdManager) host.context.getSystemService(Context.NSD_SERVICE);
             mgr.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, regListener);
@@ -99,7 +99,7 @@ public class Host {
                         }
                         continue;
                     }
-                    int port = serverSocket.getLocalPort();
+                    int port = sock.getLocalPort();
                     synchronized (this) {
                         serverSocket = sock;
                         nsd = new NsdRegistration(host, port);
@@ -142,15 +142,17 @@ public class Host {
     Context context;
     ListenerThread listener;
 
-    public Host() {
+    public Host(Context context_) {
         Log.d(TAG, "Starting Host");
 
+        context = context_;
         listener = new ListenerThread(this);
         listener.start();
     }
 
     public void stop() {
         listener.interruptListener();
+        listener = null;
         Log.d(TAG, "Stopped Host");
     }
 }
