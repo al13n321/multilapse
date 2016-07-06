@@ -23,7 +23,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Snap"
+        android:text="Hypersnap"
         android:id="@+id/snap_button"
         android:onClick="onTakeSnapshot"
         android:layout_alignTop="@+id/preview_switch"
