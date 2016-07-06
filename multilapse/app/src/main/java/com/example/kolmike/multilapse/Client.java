@@ -47,7 +47,7 @@ public class Client {
                 @Override
                 public void onServiceFound(NsdServiceInfo service) {
                     Log.d(TAG, "Found service " + service);
-                    if (!service.getServiceType().equals("_multilapse._tcp.")) {
+                    if (!service.getServiceType().equals("_http._tcp.")) {
                         Log.d(TAG, "Found uninteresting service " + service);
                     } else if (service.getServiceName().startsWith("multilapse @")) {
                         Log.d(TAG, "Found multilapse service: " + service.getServiceName());
@@ -92,7 +92,7 @@ public class Client {
             };
 
             mgr.discoverServices(
-                    "_multilapse._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+                    "_http._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
         }
 
         public void stop() {

@@ -46,7 +46,7 @@ public class Host {
 
             NsdServiceInfo serviceInfo  = new NsdServiceInfo();
             serviceInfo.setServiceName("multilapse @" + System.currentTimeMillis());
-            serviceInfo.setServiceType("_multilapse._tcp.");
+            serviceInfo.setServiceType("_http._tcp.");
             serviceInfo.setPort(port);
             mgr = (NsdManager) host.context.getSystemService(Context.NSD_SERVICE);
             mgr.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, regListener);
