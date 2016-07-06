@@ -14,21 +14,27 @@
         android:layout_height="wrap_content"
         android:text="Host"
         android:id="@+id/host_switch"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
         android:checked="false"
-        android:onClick="onHostSwitched" />
+        android:onClick="onHostSwitched"
+        android:layout_alignBottom="@+id/gif_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hypersnap"
+        android:text="Snap"
         android:id="@+id/snap_button"
         android:onClick="onTakeSnapshot"
         android:layout_alignTop="@+id/preview_switch"
-        android:layout_toLeftOf="@+id/preview_switch"
-        android:layout_toStartOf="@+id/preview_switch" />
+        android:layout_alignRight="@+id/preview_switch"
+        android:layout_alignEnd="@+id/preview_switch"
+        android:layout_marginRight="51dp"
+        android:layout_marginEnd="51dp"
+        android:layout_toRightOf="@+id/host_switch"
+        android:layout_toEndOf="@+id/host_switch"
+        android:layout_marginLeft="159dp"
+        android:layout_marginStart="159dp" />
 
     <ToggleButton
         android:layout_width="wrap_content"
@@ -42,18 +48,34 @@
         android:checked="true"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/host_switch"
+        android:layout_toEndOf="@+id/host_switch"
+        android:layout_marginLeft="235dp"
+        android:layout_marginStart="235dp" />
 
     <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New ToggleButton"
         android:id="@+id/gif_button"
+        android:textOff="gif"
+        android:textOn="/gif"
+        android:onClick="onGifButtonClick"
+        android:checked="false"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/hypersnap_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="65dp"
+        android:layout_marginStart="65dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hypersnap"
+        android:id="@+id/hypersnap_button"
         android:layout_alignTop="@+id/snap_button"
-        android:layout_toLeftOf="@+id/snap_button"
-        android:layout_toStartOf="@+id/snap_button"
-        android:textOff="Start gif"
-        android:textOn="Stop gif"
-        android:onClick="onGifButtonClick" />
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

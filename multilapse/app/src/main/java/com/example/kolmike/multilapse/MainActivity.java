@@ -75,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "/takePicture()");
     }
 
+    public void onHypersnap(View view) {
+
+    }
+
     void updateHost() {
         Switch s = (Switch) findViewById(R.id.host_switch);
         if (s.isChecked() == (host != null)) {

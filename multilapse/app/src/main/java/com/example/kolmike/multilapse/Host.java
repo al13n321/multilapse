@@ -172,6 +172,13 @@ public class Host {
         void onPicturesTaken(ArrayList<byte[]> data);
     }
 
+    class TestHypersnapCallback implements HypersnapCallback {
+        public void onPicturesTaken(ArrayList<byte[]> data) {
+            Log.d(TAG, "Hypersnapped " + data.size() + " pictures!" +
+                    (data.size() > 1 ? " Wooo!" : ""));
+        }
+    }
+
     class ListenerThread extends Thread {
         Host host;
         ServerSocket serverSocket;
