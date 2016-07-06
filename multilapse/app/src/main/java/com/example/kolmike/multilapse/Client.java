@@ -5,6 +5,10 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client {
@@ -12,19 +16,104 @@ public class Client {
 
     class NetThread extends Thread {
         Client client;
+        InetAddress host;
+        int port;
         Socket socket;
 
-        NetThread(Client client_) {
+        NetThread(Client client_, InetAddress host_, int port_) {
             client = client_;
+            host = host_;
+            port = port_;
         }
 
         void interruptIt() {
-
+            synchronized (this) {
+                if (socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        Log.d(TAG, "Failed to close Socket: " + e);
+                    }
+                    socket = null;
+                }
+                interrupt();
+            }
         }
 
         public void run() {
-            while (!Thread.interrupted()) {
+            DataInputStream in = null;
+            DataOutputStream out = null;
 
+            while (!Thread.interrupted()) {
+                Socket sock;
+                synchronized (this) {
+                    sock = socket;
+                }
+                if (sock == null) {
+                    try {
+                        sock = new Socket(host, port);
+                    } catch (IOException e) {
+                        Log.d(TAG, "Failed to connect to " + host + ":" + port + ", error: " + e);
+                        try {
+                            Thread.sleep(1000);
+                            continue;
+                        } catch (InterruptedException e1) {
+                            break;
+                        }
+                    }
+                    in = new DataInputStream(server.getInputStream());
+                    out = new DataOutputStream(server.getOutputStream());
+                    synchronized (this) {
+                        socket = sock;
+                    }
+                    continue;
+                }
+
+                boolean disconnect = false;
+                try {
+                    char type = in.readChar();
+                    int sz = in.readInt();
+                    if (type == 's') {
+                        
+                    } else {
+                        Log.d(TAG, "Unexpected message type: " + type + ", size: " + sz);
+                        disconnect = true;
+                    }
+                    if (!disconnect) {
+                        in.skipBytes(sz);
+                    }
+                } catch (IOException e) {
+                    Log.d(TAG, "Failed socket IO: " + e);
+                    disconnect = true;
+                }
+
+                if (disconnect) {
+                    try {
+                        sock.close();
+                    } catch (IOException e1) {
+                        Log.d(TAG, "Failed close socket: " + e);
+                    }
+                    synchronized (this) {
+                        socket = null;
+                    }
+                    try {
+                        Thread.sleep(1000);
+                        continue;
+                    } catch (InterruptedException e1) {
+                        break;
+                    }
+                }
+            }
+
+            synchronized (this) {
+                if (socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        Log.d(TAG, "Failed to close socket: " + e);
+                    }
+                    socket = null;
+                }
             }
         }
     }
@@ -47,7 +136,7 @@ public class Client {
                 @Override
                 public void onServiceFound(NsdServiceInfo service) {
                     Log.d(TAG, "Found service " + service);
-                    if (!service.getServiceType().equals("_http._tcp.")) {
+                    if (!service.getServiceType().equals("_multilapse._tcp.")) {
                         Log.d(TAG, "Found uninteresting service " + service);
                     } else if (service.getServiceName().startsWith("multilapse @")) {
                         Log.d(TAG, "Found multilapse service: " + service.getServiceName());
@@ -92,7 +181,7 @@ public class Client {
             };
 
             mgr.discoverServices(
-                    "_http._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+                    "_multilapse._tcp.", NsdManager.PROTOCOL_DNS_SD, discoveryListener);
         }
 
         public void stop() {
