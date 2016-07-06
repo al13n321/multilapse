@@ -9,16 +9,40 @@ import android.widget.Switch;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MyActivity";
+    Host host;
+    Client client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "Hello world");
+        update();
+    }
+
+    void update() {
+        Switch s = (Switch) findViewById(R.id.host_switch);
+        if (s.isChecked()) {
+            if (host != null) {
+                return;
+            }
+            if (client != null) {
+                client.stop();
+                client = null;
+            }
+            host = new Host();
+        } else {
+            if (client != null) {
+                return;
+            }
+            if (host != null) {
+                host.stop();
+                host = null;
+            }
+            client = new Client();
+        }
     }
 
     public void onHostSwitched(View view) {
-        Switch s = (Switch) findViewById(R.id.host_switch);
-        Log.d(TAG, "switched to " + s.isChecked());
+        update();
     }
 }
