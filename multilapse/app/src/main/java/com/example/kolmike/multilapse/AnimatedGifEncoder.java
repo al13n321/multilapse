@@ -1,13 +1,14 @@
 package com.example.kolmike.multilapse;
 
 // from https://raw.githubusercontent.com/nbadal/android-gif-encoder/master/GifEncoder.java
-import java.io.IOException;
-import java.io.OutputStream;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class AnimatedGifEncoder {
     protected int width; // image size
@@ -58,8 +59,7 @@ public class AnimatedGifEncoder {
      * Sets the delay time between each frame, or changes it for subsequent frames
      * (applies to last frame added).
      *
-     * @param ms
-     *          int delay time in milliseconds
+     * @param ms int delay time in milliseconds
      */
     public void setDelay(int ms) {
         delay = ms / 10;
@@ -70,8 +70,7 @@ public class AnimatedGifEncoder {
      * subsequent frames. Default is 0 if no transparent color has been set,
      * otherwise 2.
      *
-     * @param code
-     *          int disposal code.
+     * @param code int disposal code.
      */
     public void setDispose(int code) {
         if (code >= 0) {
@@ -84,8 +83,7 @@ public class AnimatedGifEncoder {
      * 1; 0 means play indefinitely. Must be invoked before the first image is
      * added.
      *
-     * @param iter
-     *          int number of iterations.
+     * @param iter int number of iterations.
      * @return
      */
     public void setRepeat(int iter) {
@@ -101,8 +99,7 @@ public class AnimatedGifEncoder {
      * color becomes the transparent color for that frame. May be set to null to
      * indicate no transparent color.
      *
-     * @param c
-     *          Color to be treated as transparent on display.
+     * @param c Color to be treated as transparent on display.
      */
     public void setTransparent(int c) {
         transparent = c;
@@ -115,8 +112,7 @@ public class AnimatedGifEncoder {
      * <code>setSize</code> was not invoked, the size of the first image is used
      * for all subsequent frames.
      *
-     * @param im
-     *          BufferedImage containing frame to write.
+     * @param im BufferedImage containing frame to write.
      * @return true if successful.
      */
     public boolean addFrame(Bitmap im) {
@@ -190,12 +186,11 @@ public class AnimatedGifEncoder {
      * Sets frame rate in frames per second. Equivalent to
      * <code>setDelay(1000/fps)</code>.
      *
-     * @param fps
-     *          float frame rate (frames per second)
+     * @param fps float frame rate (frames per second)
      */
     public void setFrameRate(float fps) {
         if (fps != 0f) {
-            delay = (int)(100 / fps);
+            delay = (int) (100 / fps);
         }
     }
 
@@ -206,8 +201,7 @@ public class AnimatedGifEncoder {
      * default, and produces good color mapping at reasonable speeds. Values
      * greater than 20 do not yield significant improvements in speed.
      *
-     * @param quality
-     *          int greater than 0.
+     * @param quality int greater than 0.
      * @return
      */
     public void setQuality(int quality) {
@@ -220,10 +214,8 @@ public class AnimatedGifEncoder {
      * Sets the GIF frame size. The default size is the size of the first frame
      * added if this method is not invoked.
      *
-     * @param w
-     *          int frame width.
-     * @param h
-     *          int frame width.
+     * @param w int frame width.
+     * @param h int frame width.
      */
     public void setSize(int w, int h) {
         width = w;
@@ -239,10 +231,8 @@ public class AnimatedGifEncoder {
      * Sets the GIF frame position. The position is 0,0 by default.
      * Useful for only updating a section of the image
      *
-     * @param w
-     *          int frame width.
-     * @param h
-     *          int frame width.
+     * @param w int frame width.
+     * @param h int frame width.
      */
     public void setPosition(int x, int y) {
         this.x = x;
@@ -253,8 +243,7 @@ public class AnimatedGifEncoder {
      * Initiates GIF file creation on the given stream. The stream is not closed
      * automatically.
      *
-     * @param os
-     *          OutputStream on which GIF images are written.
+     * @param os OutputStream on which GIF images are written.
      * @return false if initial write failed.
      */
     public boolean start(OutputStream os) {
@@ -306,7 +295,6 @@ public class AnimatedGifEncoder {
 
     /**
      * Returns index of palette color closest to c
-     *
      */
     protected int findClosest(int c) {
         if (colorTab == null)
@@ -317,7 +305,7 @@ public class AnimatedGifEncoder {
         int minpos = 0;
         int dmin = 256 * 256 * 256;
         int len = colorTab.length;
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int dr = r - (colorTab[i++] & 0xff);
             int dg = g - (colorTab[i++] & 0xff);
             int db = b - (colorTab[i] & 0xff);
@@ -355,6 +343,7 @@ public class AnimatedGifEncoder {
             pixels[tind] = (byte) ((td >> 16) & 0xFF);
         }
     }
+
     protected int[] getImageData(Bitmap img) {
         int w = img.getWidth();
         int h = img.getHeight();
@@ -487,7 +476,7 @@ public class AnimatedGifEncoder {
 }
 
 	/*
-	 * NeuQuant Neural-Net Quantization Algorithm
+     * NeuQuant Neural-Net Quantization Algorithm
 	 * ------------------------------------------
 	 *
 	 * Copyright (c) 1994 Anthony Dekker
@@ -581,22 +570,16 @@ class NeuQuant {
     protected static final int alphabiasshift = 10; /* alpha starts at 1.0 */
 
     protected static final int initalpha = (((int) 1) << alphabiasshift);
-
-    protected int alphadec; /* biased by 10 bits */
-
     /* radbias and alpharadbias used for radpower calculation */
     protected static final int radbiasshift = 8;
-
     protected static final int radbias = (((int) 1) << radbiasshift);
-
     protected static final int alpharadbshift = (alphabiasshift + radbiasshift);
-
     protected static final int alpharadbias = (((int) 1) << alpharadbshift);
+    protected int alphadec; /* biased by 10 bits */
 
 	  /*
 	   * Types and Global Variables --------------------------
 	   */
-
     protected byte[] thepicture; /* the input image itself */
 
     protected int lengthcount; /* lengthcount = H*W*3 */
@@ -997,17 +980,12 @@ class NeuQuant {
 
 class LZWEncoder {
 
+    static final int BITS = 12;
+    static final int HSIZE = 5003; // 80% occupancy
     private static final int EOF = -1;
-
-    private int imgW, imgH;
-
-    private byte[] pixAry;
-
-    private int initCodeSize;
-
-    private int remaining;
-
-    private int curPixel;
+    int n_bits; // number of bits/code
+    int maxbits = BITS; // user settable max # bits/code
+    int maxcode; // maximum code, given n_bits
 
     // GIFCOMPR.C - GIF Image compression routines
     //
@@ -1015,10 +993,8 @@ class LZWEncoder {
     // David Rowley (mgardi@watdcsu.waterloo.edu)
 
     // General DEFINEs
-
-    static final int BITS = 12;
-
-    static final int HSIZE = 5003; // 80% occupancy
+    int maxmaxcode = 1 << BITS; // should NEVER generate this code
+    int[] htab = new int[HSIZE];
 
     // GIF Image compression - modified 'compress'
     //
@@ -1030,26 +1006,17 @@ class LZWEncoder {
     // Ken Turkowski (decvax!decwrl!turtlevax!ken)
     // James A. Woods (decvax!ihnp4!ames!jaw)
     // Joe Orost (decvax!vax135!petsd!joe)
-
-    int n_bits; // number of bits/code
-
-    int maxbits = BITS; // user settable max # bits/code
-
-    int maxcode; // maximum code, given n_bits
-
-    int maxmaxcode = 1 << BITS; // should NEVER generate this code
-
-    int[] htab = new int[HSIZE];
-
     int[] codetab = new int[HSIZE];
-
     int hsize = HSIZE; // for dynamic table sizing
-
     int free_ent = 0; // first unused entry
-
     // block compression parameters -- after all codes are used up,
     // and compression rate changes, start over.
     boolean clear_flg = false;
+    int g_init_bits;
+    int ClearCode;
+    int EOFCode;
+    int cur_accum = 0;
+    int cur_bits = 0;
 
     // Algorithm: use open addressing double hashing (no chaining) on the
     // prefix code / next character combination. We do a variant of Knuth's
@@ -1062,12 +1029,12 @@ class LZWEncoder {
     // for the decompressor. Late addition: construct the table according to
     // file size for noticeable speed improvement on small files. Please direct
     // questions about this implementation to ames!jaw.
-
-    int g_init_bits;
-
-    int ClearCode;
-
-    int EOFCode;
+    int masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF,
+            0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
+    // Number of characters so far in this 'packet'
+    int a_count;
+    // Define the storage for the packet accumulator
+    byte[] accum = new byte[256];
 
     // output
     //
@@ -1083,19 +1050,11 @@ class LZWEncoder {
     // Maintain a BITS character long buffer (so that 8 codes will
     // fit in it exactly). Use the VAX insv instruction to insert each
     // code in turn. When the buffer fills up empty it and start over.
-
-    int cur_accum = 0;
-
-    int cur_bits = 0;
-
-    int masks[] = { 0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF,
-            0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF };
-
-    // Number of characters so far in this 'packet'
-    int a_count;
-
-    // Define the storage for the packet accumulator
-    byte[] accum = new byte[256];
+    private int imgW, imgH;
+    private byte[] pixAry;
+    private int initCodeSize;
+    private int remaining;
+    private int curPixel;
 
     // ----------------------------------------------------------------------------
     LZWEncoder(int width, int height, byte[] pixels, int color_depth) {
@@ -1165,7 +1124,8 @@ class LZWEncoder {
 
         output(ClearCode, outs);
 
-        outer_loop: while ((c = nextPixel()) != EOF) {
+        outer_loop:
+        while ((c = nextPixel()) != EOF) {
             fcode = (c << maxbits) + ent;
             i = (c << hshift) ^ ent; // xor hashing
 

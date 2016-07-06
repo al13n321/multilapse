@@ -1,68 +1,87 @@
 package com.example.kolmike.multilapse;
 
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
-import android.widget.Switch;
-import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 import android.content.Context;
+import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Switch;
-import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
-import android.view.SurfaceView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import android.view.ViewGroup;
-import android.view.SurfaceHolder;
 
 
 public class CameraHelper {
     private static final String TAG = "CameraHelper";
     private final Context context_;
     private final Activity activity_;
+    CameraErrorCallback errorCallback_ = new CameraErrorCallback();
     private CameraPreview preview_;
 
-    CameraErrorCallback errorCallback_ = new CameraErrorCallback();
+    public CameraHelper(Activity activity) {
+        this.activity_ = activity;
+        this.context_ = activity.getApplicationContext();
+        this.preview_ = null;
+        Log.d(TAG, "init CameraHelper()");
+    }
 
-    public interface PhotoCallback {
-        public abstract void onPictureTaken(Context context, byte[] data);
+    public void showPreview() {
+        if (preview_ == null) {
+            preview_ = new CameraPreview(activity_, 0, CameraPreview.LayoutMode.FitToParent);
+            FrameLayout.LayoutParams previewLayoutParams = new FrameLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+            activity_.addContentView(preview_, previewLayoutParams);
+        }
+    }
+
+    public void turnOffPreview() {
+        if (preview_ != null) {
+            preview_.stop();
+            ((ViewGroup) preview_.getParent()).removeView(preview_);
+            preview_ = null;
+        }
+    }
+
+    ;
+
+    public void takePicture(PhotoCallback callback) {
+        boolean stopPreview = false;
+        if (preview_ == null) {
+            showPreview();
+            stopPreview = true;
+        }
+        Camera camera = preview_.getCamera();
+        camera.startPreview();
+        camera.lock();
+
+        Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback() {
+            @Override
+            public void onShutter() {
+                Log.v(TAG, "Shutter");
+            }
+        };
+
+        PictureCallback rawCallback = new PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] data, Camera camera) {
+                Log.v(TAG, "Raw picture taken");
+            }
+        };
+
+
+        //camera.setPreviewCallback(null);
+        camera.takePicture(shutterCallback, rawCallback, new JpegCallback(this, stopPreview, context_, callback));
     }
 
 
-    private final class CameraErrorCallback implements android.hardware.Camera.ErrorCallback {
-        public void onError(int error, android.hardware.Camera camera) {
-            Log.d(TAG, "Error code: " + error);
-        }
+    public interface PhotoCallback {
+        public abstract void onPictureTaken(Context context, byte[] data);
     }
 
     public static final class SaveToFileCallback implements PhotoCallback {
@@ -104,7 +123,13 @@ public class CameraHelper {
             return new File(sdDir, "Multilapse");
         }
 
-    };
+    }
+
+    private final class CameraErrorCallback implements android.hardware.Camera.ErrorCallback {
+        public void onError(int error, android.hardware.Camera camera) {
+            Log.d(TAG, "Error code: " + error);
+        }
+    }
 
     private final class JpegCallback implements PictureCallback {
         private final Context context;
@@ -129,59 +154,5 @@ public class CameraHelper {
                 camera.startPreview();
             }
         }
-    }
-
-
-    public CameraHelper(Activity activity) {
-        this.activity_ = activity;
-        this.context_ = activity.getApplicationContext();
-        this.preview_ = null;
-        Log.d(TAG, "init CameraHelper()");
-    }
-
-    public void showPreview() {
-        if (preview_ == null) {
-            preview_ = new CameraPreview(activity_, 0, CameraPreview.LayoutMode.FitToParent);
-            FrameLayout.LayoutParams previewLayoutParams = new FrameLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-
-            activity_.addContentView(preview_, previewLayoutParams);
-        }
-    }
-
-    public void turnOffPreview() {
-        if (preview_ != null) {
-            preview_.stop();
-            ((ViewGroup)preview_.getParent()).removeView(preview_);
-            preview_ = null;
-        }
-    }
-
-    public void takePicture(PhotoCallback callback) {
-        boolean stopPreview = false;
-        if (preview_ == null) {
-            showPreview();
-            stopPreview = true;
-        }
-        Camera camera = preview_.getCamera();
-        camera.startPreview();
-        camera.lock();
-
-        Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback() {
-            @Override
-            public void onShutter() {
-                Log.v(TAG, "Shutter");
-            }
-        };
-
-        PictureCallback rawCallback = new PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                Log.v(TAG, "Raw picture taken");
-            }
-        };
-
-
-        //camera.setPreviewCallback(null);
-        camera.takePicture(shutterCallback, rawCallback, new JpegCallback(this, stopPreview, context_, callback));
     }
 }

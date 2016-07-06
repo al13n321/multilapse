@@ -49,6 +49,6 @@
         android:textOn="On"
         android:textOff="Off"
         android:onClick="onSwitchPreviewClick"
-        android:checked="false" />
+        android:checked="true" />
 
 </RelativeLayout>

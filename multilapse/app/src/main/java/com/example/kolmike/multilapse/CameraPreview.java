@@ -1,9 +1,6 @@
 package com.example.kolmike.multilapse;
 // https://github.com/pikanji/CameraPreviewSample
 
-import java.io.IOException;
-import java.util.List;
-
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.hardware.Camera;
@@ -15,47 +12,41 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.util.List;
 // https://github.com/pikanji/CameraPreviewSample
+
 /**
  * This class assumes the parent layout is RelativeLayout.LayoutParams.
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
-    private static boolean DEBUGGING = true;
     private static final String LOG_TAG = "CameraPreviewSample";
     private static final String CAMERA_PARAM_ORIENTATION = "orientation";
     private static final String CAMERA_PARAM_LANDSCAPE = "landscape";
     private static final String CAMERA_PARAM_PORTRAIT = "portrait";
+    private static boolean DEBUGGING = true;
     protected Activity mActivity;
-    private SurfaceHolder mHolder;
     protected Camera mCamera;
     protected List<Camera.Size> mPreviewSizeList;
     protected List<Camera.Size> mPictureSizeList;
     protected Camera.Size mPreviewSize;
     protected Camera.Size mPictureSize;
+    /**
+     * State flag: true when surface's layout size is set and surfaceChanged()
+     * process has not been completed.
+     */
+    protected boolean mSurfaceConfiguring = false;
+    PreviewReadyCallback mPreviewReadyCallback = null;
+    private SurfaceHolder mHolder;
     private int mSurfaceChangedCallDepth = 0;
     private int mCameraId;
     private LayoutMode mLayoutMode;
     private int mCenterPosX = -1;
     private int mCenterPosY;
 
-    PreviewReadyCallback mPreviewReadyCallback = null;
-
-    public static enum LayoutMode {
-        FitToParent, // Scale to the size that no side is larger than the parent
-        NoBlank // Scale to the size that no side is smaller than the parent
-    };
-
-    public interface PreviewReadyCallback {
-        public void onPreviewReady();
-    }
-
-    /**
-     * State flag: true when surface's layout size is set and surfaceChanged()
-     * process has not been completed.
-     */
-    protected boolean mSurfaceConfiguring = false;
+    ;
 
     public CameraPreview(Activity activity, int cameraId, LayoutMode mode) {
         super(activity); // Always necessary
@@ -117,7 +108,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         if (!mSurfaceConfiguring) {
             Camera.Size previewSize = determinePreviewSize(portrait, width, height);
             Camera.Size pictureSize = determinePictureSize(previewSize);
-            if (DEBUGGING) { Log.v(LOG_TAG, "Desired Preview Size - w: " + width + ", h: " + height); }
+            if (DEBUGGING) {
+                Log.v(LOG_TAG, "Desired Preview Size - w: " + width + ", h: " + height);
+            }
             mPreviewSize = previewSize;
             mPictureSize = pictureSize;
             mSurfaceConfiguring = adjustSurfaceLayoutSize(previewSize, portrait, width, height);
@@ -161,8 +154,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     /**
      * @param cameraParams
      * @param portrait
-     * @param reqWidth must be the value of the parameter passed in surfaceChanged
-     * @param reqHeight must be the value of the parameter passed in surfaceChanged
+     * @param reqWidth     must be the value of the parameter passed in surfaceChanged
+     * @param reqHeight    must be the value of the parameter passed in surfaceChanged
      * @return Camera.Size object that is an element of the list returned from Camera.Parameters.getSupportedPreviewSizes.
      */
     protected Camera.Size determinePreviewSize(boolean portrait, int reqWidth, int reqHeight) {
@@ -215,7 +208,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             }
         }
 
-        if (DEBUGGING) { Log.v(LOG_TAG, "Same picture size not found."); }
+        if (DEBUGGING) {
+            Log.v(LOG_TAG, "Same picture size not found.");
+        }
 
         // if the preview size is not supported as a picture size
         float reqRatio = ((float) previewSize.width) / previewSize.height;
@@ -263,7 +258,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             }
         }
 
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)this.getLayoutParams();
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) this.getLayoutParams();
 
         int layoutHeight = (int) (tmpLayoutHeight * fact);
         int layoutWidth = (int) (tmpLayoutWidth * fact);
@@ -379,5 +374,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     public void setOnPreviewReady(PreviewReadyCallback cb) {
         mPreviewReadyCallback = cb;
+    }
+
+    public static enum LayoutMode {
+        FitToParent, // Scale to the size that no side is larger than the parent
+        NoBlank // Scale to the size that no side is smaller than the parent
+    }
+
+    public interface PreviewReadyCallback {
+        public void onPreviewReady();
     }
 }
