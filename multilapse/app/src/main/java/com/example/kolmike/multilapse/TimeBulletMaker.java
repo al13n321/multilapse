@@ -18,14 +18,13 @@ public class TimeBulletMaker {
     private byte[] gifData_;
     private AnimatedGifEncoder encoder_;
 
-
     TimeBulletMaker() {
         bitmaps_ = new ArrayList<Bitmap>();
         encoder_ = new AnimatedGifEncoder();
         encoder_.setDelay(DELAY_MS);
     }
 
-
+    // http://android-solution-sample.blogspot.co.uk/2011/10/bitmap-out-of-memory.html
     BitmapFactory.Options getScaleOptions(byte[] data) {
         BitmapFactory.Options o = new BitmapFactory.Options();
         o.inJustDecodeBounds = true;
